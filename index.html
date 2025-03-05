@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contrast.Pro - Verificador de Acessibilidade</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="app-header">
+        <div class="header-content">
+          <h1>Contrast<span class="dot">.</span>Pro</h1>
+          <p>Maximize a acessibilidade das suas cores</p>
+        </div>
+      </header>
+
+      <main class="color-analyzer">
+        <section class="color-inputs">
+          <form id="contrast-form" class="elegant-form">
+            <div class="input-wrapper background-input">
+              <label for="background-color">Cor de Fundo</label>
+              <div class="color-input-group">
+                <div class="select-wrapper">
+                  <select
+                    id="background-color-type"
+                    class="color-format-selector"
+                  >
+                    <option value="hex">HEX</option>
+                    <option value="rgb">RGB</option>
+                    <option value="hsl">HSL</option>
+                  </select>
+                  <svg
+                    class="select-arrow"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7 10l5 5 5-5z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  id="background-color"
+                  placeholder="#FFFFFF"
+                  class="color-input"
+                  required
+                />
+                <div class="color-picker-wrapper">
+                  <input
+                    type="color"
+                    id="background-color-picker"
+                    class="color-picker"
+                  />
+                  <label
+                    for="background-color-picker"
+                    class="color-picker-label"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                      <path
+                        d="M20.71 5.63l-2.34-2.34a1 1 0 0 0-1.41 0l-3 3L2 16v5h5l10.88-10.88 3 3a1 1 0 0 0 1.41 0l2.34-2.34a1 1 0 0 0 0-1.41z"
+                      />
+                    </svg>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="input-wrapper text-input">
+              <label for="text-color">Cor do Texto</label>
+              <div class="color-input-group">
+                <div class="select-wrapper">
+                  <select id="text-color-type" class="color-format-selector">
+                    <option value="hex">HEX</option>
+                    <option value="rgb">RGB</option>
+                    <option value="hsl">HSL</option>
+                  </select>
+                  <svg
+                    class="select-arrow"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7 10l5 5 5-5z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  id="text-color"
+                  placeholder="#000000"
+                  class="color-input"
+                  required
+                />
+                <div class="color-picker-wrapper">
+                  <input
+                    type="color"
+                    id="text-color-picker"
+                    class="color-picker"
+                  />
+                  <label for="text-color-picker" class="color-picker-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                      <path
+                        d="M20.71 5.63l-2.34-2.34a1 1 0 0 0-1.41 0l-3 3L2 16v5h5l10.88-10.88 3 3a1 1 0 0 0 1.41 0l2.34-2.34a1 1 0 0 0 0-1.41z"
+                      />
+                    </svg>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="analyze-btn">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                class="btn-icon"
+              >
+                <path
+                  d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                />
+              </svg>
+              Analisar Contraste
+            </button>
+          </form>
+        </section>
+
+        <section class="results-panel">
+          <div id="color-preview" class="color-preview">
+            <p>Pré-visualização</p>
+          </div>
+
+          <div class="contrast-metrics">
+            <div id="contrast-ratio" class="metric">
+              <span class="label">Contraste</span>
+              <span class="value">-</span>
+            </div>
+
+            <div id="accessibility-level" class="metric">
+              <span class="label">Acessibilidade</span>
+              <span class="value">-</span>
+            </div>
+          </div>
+
+          <div id="recommendations" class="recommendations">
+            <h3>Recomendações</h3>
+            <ul id="recommendation-list"></ul>
+          </div>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <p>© 2024 Contrast.Pro • Todos os direitos reservados</p>
+      </footer>
+    </div>
+
+    <script type="module" src="scripts/app.js"></script>
+  </body>
+</html>
