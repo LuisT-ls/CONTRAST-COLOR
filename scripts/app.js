@@ -1,179 +1,225 @@
-// app.js
-import {
-  convertColor,
-  calculateContrastRatio,
-  suggestHoverColor
-} from './modules/color-utils.js'
+// scripts/app.js
+import * as ColorUtils from './modules/color-utils.js'
 
 class ContrastAnalyzer {
   constructor() {
-    this.initializeElements()
-    this.bindEvents()
+    this.initElements()
+    this.addEventListeners()
+    this.initPlaceholders()
   }
 
-  initializeElements() {
-    this.backgroundColorType = document.getElementById('background-color-type')
-    this.textColorType = document.getElementById('text-color-type')
+  initElements() {
+    // Color inputs and pickers
     this.backgroundColorInput = document.getElementById('background-color')
-    this.textColorInput = document.getElementById('text-color')
+    this.backgroundColorType = document.getElementById('background-color-type')
     this.backgroundColorPicker = document.getElementById(
       'background-color-picker'
     )
+
+    this.textColorInput = document.getElementById('text-color')
+    this.textColorType = document.getElementById('text-color-type')
     this.textColorPicker = document.getElementById('text-color-picker')
 
+    // Results elements
     this.colorPreview = document.getElementById('color-preview')
-    this.contrastRatioElement = document
-      .getElementById('contrast-ratio')
-      .querySelector('.value')
-    this.accessibilityLevelElement = document
-      .getElementById('accessibility-level')
-      .querySelector('.value')
+    this.contrastRatioElement = document.querySelector('#contrast-ratio .value')
+    this.accessibilityLevelElement = document.querySelector(
+      '#accessibility-level .value'
+    )
     this.recommendationList = document.getElementById('recommendation-list')
 
-    this.setupColorPickerSync()
-    this.setupRealTimeUpdate()
+    // Form
+    this.contrastForm = document.getElementById('contrast-form')
   }
 
-  setupColorPickerSync() {
-    if (this.backgroundColorPicker && this.backgroundColorInput) {
-      this.backgroundColorPicker.addEventListener('input', e => {
-        this.backgroundColorInput.value = e.target.value
-        this.analyzeColors()
-      })
-
-      this.backgroundColorInput.addEventListener('input', e => {
-        this.backgroundColorPicker.value = e.target.value
-        this.analyzeColors()
-      })
-    }
-
-    if (this.textColorPicker && this.textColorInput) {
-      this.textColorPicker.addEventListener('input', e => {
-        this.textColorInput.value = e.target.value
-        this.analyzeColors()
-      })
-
-      this.textColorInput.addEventListener('input', e => {
-        this.textColorPicker.value = e.target.value
-        this.analyzeColors()
-      })
-    }
+  initPlaceholders() {
+    // Set initial placeholders based on selected format
+    this.updatePlaceholder(this.backgroundColorType, this.backgroundColorInput)
+    this.updatePlaceholder(this.textColorType, this.textColorInput)
   }
 
-  setupRealTimeUpdate() {
-    const inputs = [
-      this.backgroundColorInput,
-      this.backgroundColorType,
-      this.textColorInput,
-      this.textColorType
-    ]
+  addEventListeners() {
+    // Live preview on input
+    this.backgroundColorInput.addEventListener('input', () =>
+      this.updatePreview()
+    )
+    this.textColorInput.addEventListener('input', () => this.updatePreview())
 
-    inputs.forEach(input => {
-      if (input) {
-        input.addEventListener('input', () => this.analyzeColors())
-        input.addEventListener('change', () => this.analyzeColors())
-      }
+    // Update placeholders when format changes
+    this.backgroundColorType.addEventListener('change', () => {
+      this.updatePlaceholder(
+        this.backgroundColorType,
+        this.backgroundColorInput
+      )
+      this.updatePreview()
+    })
+
+    this.textColorType.addEventListener('change', () => {
+      this.updatePlaceholder(this.textColorType, this.textColorInput)
+      this.updatePreview()
+    })
+
+    // Color picker synchronization
+    this.backgroundColorPicker.addEventListener('input', e => {
+      this.backgroundColorInput.value = e.target.value
+      this.updatePreview()
+    })
+
+    this.textColorPicker.addEventListener('input', e => {
+      this.textColorInput.value = e.target.value
+      this.updatePreview()
     })
   }
 
-  bindEvents() {
-    // Remover evento de submit do formulário
-    const form = document.getElementById('contrast-form')
-    if (form) {
-      form.addEventListener('submit', e => e.preventDefault())
+  updatePlaceholder(formatSelect, colorInput) {
+    const format = formatSelect.value
+
+    switch (format) {
+      case 'hex':
+        colorInput.placeholder = '#FFFFFF'
+        break
+      case 'rgb':
+        colorInput.placeholder = 'RGB(255, 255, 255)'
+        break
+      case 'hsl':
+        colorInput.placeholder = 'HSL(0, 0%, 100%)'
+        break
     }
   }
 
-  analyzeColors() {
+  updatePreview() {
     try {
-      const backgroundColorType = this.backgroundColorType.value
-      const textColorType = this.textColorType.value
-      const backgroundColorInput = this.backgroundColorInput.value
-      const textColorInput = this.textColorInput.value
+      // Normalize colors
+      const backgroundFormat = this.backgroundColorType.value
+      const textFormat = this.textColorType.value
 
-      // Validar se as entradas não estão vazias
-      if (!backgroundColorInput || !textColorInput) return
-
-      const backgroundColorHex = convertColor(
-        backgroundColorInput,
-        backgroundColorType,
-        'hex'
+      const normalizedBackground = ColorUtils.normalizeColor(
+        this.backgroundColorInput.value,
+        backgroundFormat
       )
-      const textColorHex = convertColor(textColorInput, textColorType, 'hex')
-
-      const contrastRatio = calculateContrastRatio(
-        backgroundColorHex,
-        textColorHex
+      const normalizedText = ColorUtils.normalizeColor(
+        this.textColorInput.value,
+        textFormat
       )
-      const hoverColor = suggestHoverColor(textColorHex)
 
-      this.updateUI(backgroundColorHex, textColorHex, contrastRatio, hoverColor)
-    } catch (error) {
-      this.showError(error.message)
-    }
-  }
+      // Update color pickers
+      this.backgroundColorPicker.value =
+        backgroundFormat === 'hex'
+          ? normalizedBackground
+          : this.convertToHex(normalizedBackground)
+      this.textColorPicker.value =
+        textFormat === 'hex'
+          ? normalizedText
+          : this.convertToHex(normalizedText)
 
-  updateUI(bgColor, textColor, contrastRatio, hoverColor) {
-    // Atualizar preview de cor
-    if (this.colorPreview) {
-      this.colorPreview.style.backgroundColor = bgColor
-      this.colorPreview.style.color = textColor
-      this.colorPreview.textContent = 'Exemplo de Texto'
-    }
+      // Update preview
+      this.colorPreview.style.backgroundColor = normalizedBackground
+      this.colorPreview.style.color = normalizedText
+      this.colorPreview.textContent = 'Pré-visualização'
 
-    // Atualizar razão de contraste
-    if (this.contrastRatioElement) {
+      // Calculate contrast
+      const backgroundRgb = this.convertToRgb(normalizedBackground)
+      const textRgb = this.convertToRgb(normalizedText)
+
+      const contrastRatio = ColorUtils.getContrastRatio(backgroundRgb, textRgb)
+      const accessibilityLevel = ColorUtils.getAccessibilityLevel(contrastRatio)
+      const recommendations = ColorUtils.getRecommendations(contrastRatio)
+
+      // Update results
       this.contrastRatioElement.textContent = contrastRatio.toFixed(2)
-    }
+      this.accessibilityLevelElement.textContent = accessibilityLevel
 
-    // Determinar nível de acessibilidade
-    const accessibilityLevel = this.getAccessibilityLevel(contrastRatio)
-    if (this.accessibilityLevelElement) {
-      this.accessibilityLevelElement.textContent = accessibilityLevel.text
-      this.accessibilityLevelElement.className = `value ${accessibilityLevel.class}`
-    }
-
-    // Atualizar recomendações
-    this.updateRecommendations(contrastRatio, bgColor, textColor, hoverColor)
-  }
-
-  getAccessibilityLevel(contrastRatio) {
-    if (contrastRatio >= 7) {
-      return { text: 'AAA', class: 'success' }
-    } else if (contrastRatio >= 4.5) {
-      return { text: 'AA', class: 'warning' }
-    } else {
-      return { text: 'Falha', class: 'error' }
+      // Update recommendations
+      this.updateRecommendations(recommendations)
+    } catch (error) {
+      console.error('Color analysis error:', error)
+      this.resetResults(error.message)
     }
   }
 
-  updateRecommendations(contrastRatio, bgColor, textColor, hoverColor) {
-    if (!this.recommendationList) return
+  convertToRgb(color) {
+    if (color.startsWith('#')) {
+      return ColorUtils.hexToRgb(color)
+    }
 
-    this.recommendationList.innerHTML = '' // Limpar recomendações anteriores
+    if (color.startsWith('rgb')) {
+      const match = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+      return {
+        r: parseInt(match[1]),
+        g: parseInt(match[2]),
+        b: parseInt(match[3])
+      }
+    }
 
-    const recommendations = []
-
-    if (contrastRatio >= 7) {
-      recommendations.push('Excelente contraste! Atende aos padrões WCAG AAA.')
-    } else if (contrastRatio >= 4.5) {
-      recommendations.push(
-        'Contraste adequado para textos normais (Padrão WCAG AA).'
-      )
-      recommendations.push(
-        `Considere ajustar a cor de fundo (${bgColor}) ou texto (${textColor}) para melhorar o contraste.`
-      )
-    } else {
-      recommendations.push(
-        'Contraste insuficiente! Acessibilidade comprometida.'
-      )
-      recommendations.push(
-        `Recomendamos alterar significativamente a cor de fundo (${bgColor}) ou texto (${textColor}).`
+    if (color.startsWith('hsl')) {
+      const match = color.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/)
+      return this.hslToRgb(
+        parseInt(match[1]),
+        parseInt(match[2]),
+        parseInt(match[3])
       )
     }
 
-    recommendations.push(`Cor de hover sugerida: ${hoverColor}`)
+    throw new Error('Unsupported color format')
+  }
 
+  convertToHex(color) {
+    if (color.startsWith('#')) return color
+
+    if (color.startsWith('rgb')) {
+      const match = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+      return this.rgbToHex(
+        parseInt(match[1]),
+        parseInt(match[2]),
+        parseInt(match[3])
+      )
+    }
+
+    if (color.startsWith('hsl')) {
+      const match = color.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/)
+      const rgb = this.hslToRgb(
+        parseInt(match[1]),
+        parseInt(match[2]),
+        parseInt(match[3])
+      )
+      return this.rgbToHex(rgb.r, rgb.g, rgb.b)
+    }
+
+    throw new Error('Unsupported color format')
+  }
+
+  rgbToHex(r, g, b) {
+    return (
+      '#' +
+      [r, g, b]
+        .map(x => {
+          const hex = x.toString(16)
+          return hex.length === 1 ? '0' + hex : hex
+        })
+        .join('')
+        .toUpperCase()
+    )
+  }
+
+  hslToRgb(h, s, l) {
+    s /= 100
+    l /= 100
+    const k = n => (n + h / 30) % 12
+    const a = s * Math.min(l, 1 - l)
+    const f = n =>
+      l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))
+    return {
+      r: Math.round(255 * f(0)),
+      g: Math.round(255 * f(8)),
+      b: Math.round(255 * f(4))
+    }
+  }
+
+  updateRecommendations(recommendations) {
+    // Clear previous recommendations
+    this.recommendationList.innerHTML = ''
+
+    // Add new recommendations
     recommendations.forEach(rec => {
       const li = document.createElement('li')
       li.textContent = rec
@@ -181,15 +227,18 @@ class ContrastAnalyzer {
     })
   }
 
-  showError(message) {
-    if (this.recommendationList) {
-      this.recommendationList.innerHTML = `<li class="error">${message}</li>`
-    }
-    console.error(message)
+  resetResults(errorMessage = 'Erro na análise de cores') {
+    this.contrastRatioElement.textContent = '-'
+    this.accessibilityLevelElement.textContent = '-'
+    this.recommendationList.innerHTML = ''
+
+    const li = document.createElement('li')
+    li.textContent = errorMessage
+    this.recommendationList.appendChild(li)
   }
 }
 
-// Inicializar o analisador quando o DOM estiver carregado
+// Initialize the application when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
   new ContrastAnalyzer()
 })
